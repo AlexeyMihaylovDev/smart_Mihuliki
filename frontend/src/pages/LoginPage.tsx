@@ -3,7 +3,7 @@ import { useAuthStore } from '../store/useStore';
 import { Home, Server, Key } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
-    const [url, setUrl] = useState(useAuthStore.getState().haUrl || 'http://homeassistant.local:8123');
+    const [url, setUrl] = useState(useAuthStore.getState().haUrl || 'http://192.168.3.72:8123');
     const [token, setToken] = useState(useAuthStore.getState().haToken || '');
     const { setAuth } = useAuthStore();
 
