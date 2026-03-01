@@ -15,15 +15,21 @@ export const WidgetSelector: React.FC<WidgetSelectorProps> = ({ isOpen, onClose 
 
     if (!entities) return null;
 
-    const filteredEntities = Object.values(entities).filter((entity: any) =>
-        entity.entity_id.toLowerCase().includes(search.toLowerCase()) ||
-        (entity.attributes.friendly_name || '').toLowerCase().includes(search.toLowerCase())
-    ).slice(0, 70);
+    const filteredEntities = Object.values(entities).filter((entity: any) => {
+        const domain = entity.entity_id.split('.')[0];
+        const isSelectedType = ['switch', 'light', 'climate'].includes(domain) ||
+            (domain === 'binary_sensor' && (entity.entity_id.includes('motion') || entity.entity_id.includes('presence')));
+
+        const matchesSearch = entity.entity_id.toLowerCase().includes(search.toLowerCase()) ||
+            (entity.attributes.friendly_name || '').toLowerCase().includes(search.toLowerCase());
+
+        return isSelectedType && matchesSearch;
+    }).slice(0, 70);
 
     const getEntityType = (entityId: string): 'light' | 'switch' | 'sensor' | 'generic' => {
         if (entityId.startsWith('light.')) return 'light';
         if (entityId.startsWith('switch.')) return 'switch';
-        if (entityId.startsWith('climate.')) return 'sensor'; // Will be caught by climate domain in dispatcher
+        if (entityId.startsWith('climate.')) return 'sensor'; // Dispatched to ClimateWidget in GenericWidget
         if (entityId.startsWith('sensor.') || entityId.startsWith('binary_sensor.')) return 'sensor';
         return 'generic';
     };

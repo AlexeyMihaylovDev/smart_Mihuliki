@@ -2,7 +2,7 @@ import React from 'react';
 import { useDashboardStore } from '../store/useStore';
 import { LightWidget } from './widgets/LightWidget';
 import { SwitchWidget } from './widgets/SwitchWidget';
-import { ClimateWidget } from './widgets/ClimateWidget';
+import { AirWidget } from './widgets/AirWidget';
 import { SensorWidget } from './widgets/SensorWidget';
 import { MotionWidget } from './widgets/MotionWidget';
 
@@ -12,7 +12,7 @@ interface GenericWidgetProps {
     type: 'light' | 'sensor' | 'switch' | 'generic';
 }
 
-export const GenericWidget: React.FC<GenericWidgetProps> = ({ id, entityId, type }) => {
+export const GenericWidget: React.FC<GenericWidgetProps> = ({ id, entityId, type: _type }) => {
     const { removeWidget } = useDashboardStore();
 
     const domain = entityId.split('.')[0];
@@ -21,7 +21,7 @@ export const GenericWidget: React.FC<GenericWidgetProps> = ({ id, entityId, type
     // Dispatcher logic
     if (domain === 'light') return <LightWidget id={id} entityId={entityId} onRemove={onRemove} />;
     if (domain === 'switch') return <SwitchWidget id={id} entityId={entityId} onRemove={onRemove} />;
-    if (domain === 'climate') return <ClimateWidget id={id} entityId={entityId} onRemove={onRemove} />;
+    if (domain === 'climate') return <AirWidget id={id} entityId={entityId} onRemove={onRemove} />;
     if (domain === 'sensor') return <SensorWidget id={id} entityId={entityId} onRemove={onRemove} />;
     if (domain === 'binary_sensor' && (entityId.includes('motion') || entityId.includes('presence'))) {
         return <MotionWidget id={id} entityId={entityId} onRemove={onRemove} />;

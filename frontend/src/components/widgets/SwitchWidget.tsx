@@ -1,7 +1,7 @@
 import React from 'react';
 import { useHAStore } from '../../store/useStore';
-import { Power, ToggleRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Power, X, Zap } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SwitchWidgetProps {
     id: string;
@@ -21,6 +21,10 @@ export const SwitchWidget: React.FC<SwitchWidgetProps> = ({ id, entityId, onRemo
 
     const toggle = async () => {
         if (!connection) return;
+        // Добавляем небольшую тактильную вибрацию на мобильных устройствах
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+            navigator.vibrate(50);
+        }
         connection.sendMessagePromise({
             type: 'call_service',
             domain: 'switch',
@@ -30,46 +34,119 @@ export const SwitchWidget: React.FC<SwitchWidgetProps> = ({ id, entityId, onRemo
     };
 
     return (
-        <div className="flex flex-col h-full bg-gray-800/40 backdrop-blur-xl border border-gray-700/50 rounded-3xl overflow-hidden shadow-2xl group transition-all duration-500 hover:border-emerald-500/50">
-            <div className="p-4 flex items-center justify-between">
-                <div className="flex items-center space-x-3">
+        <motion.div
+            layout
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className={`relative flex flex-col h-full w-full bg-neutral-900/60 backdrop-blur-2xl rounded-[2.5rem] overflow-hidden transition-all duration-700 group ${isOn ? 'shadow-[0_8px_32px_-10px_rgba(16,185,129,0.25)] border-emerald-500/30' : 'shadow-2xl border-white/5'
+                } border`}
+        >
+            {/* Фоновое мягкое свечение при активном состоянии */}
+            <AnimatePresence>
+                {isOn && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent pointer-events-none"
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* HEADER */}
+            <div className="relative z-10 p-5 flex items-start justify-between">
+                <div className="flex items-center gap-3">
                     <motion.div
                         animate={{
-                            backgroundColor: isOn ? 'rgba(16, 185, 129, 0.2)' : 'rgba(31, 41, 55, 0.5)',
+                            backgroundColor: isOn ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                            color: isOn ? '#10b981' : '#a3a3a3'
                         }}
-                        className="p-2 rounded-2xl"
+                        className="p-2.5 rounded-2xl backdrop-blur-md"
                     >
-                        <ToggleRight className={isOn ? 'text-emerald-400' : 'text-gray-500'} size={20} />
+                        <Zap size={18} />
                     </motion.div>
                     <div className="flex flex-col">
-                        <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Switch</span>
-                        <span className="text-sm font-semibold text-white truncate max-w-[120px]">{name}</span>
+                        <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-0.5">Switch</span>
+                        <span className="text-sm font-medium text-neutral-100 truncate max-w-[110px] leading-tight">{name}</span>
                     </div>
                 </div>
-                <button onClick={onRemove} className="text-gray-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
-                    <Power size={14} className="rotate-45" />
+
+                {/* Кнопка удаления */}
+                <button
+                    onClick={onRemove}
+                    className="p-2 text-neutral-500 hover:text-red-400 hover:bg-red-400/10 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    aria-label="Remove widget"
+                >
+                    <X size={16} strokeWidth={2.5} />
                 </button>
             </div>
 
-            <div className="flex-grow flex flex-col items-center justify-center p-4">
-                <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={toggle}
-                    className={`w-24 h-24 rounded-[2rem] flex items-center justify-center transition-all duration-500 ${isOn
-                            ? 'bg-gradient-to-br from-emerald-500 to-teal-600 shadow-[0_20px_40px_rgba(16,185,129,0.3)]'
-                            : 'bg-gray-700 shadow-inner'
-                        }`}
+            {/* MAIN TOGGLE AREA */}
+            <div className="relative z-10 flex-grow flex flex-col items-center justify-center pb-6">
+                <div className="relative">
+                    {/* Пульсирующие кольца при On */}
+                    <AnimatePresence>
+                        {isOn && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 0, scale: 1.8 }}
+                                transition={{
+                                    duration: 2,
+                                    repeat: Infinity,
+                                    ease: "easeOut"
+                                }}
+                                className="absolute inset-0 rounded-full bg-emerald-500/30"
+                            />
+                        )}
+                    </AnimatePresence>
+
+                    <motion.button
+                        layoutId={`toggle-${id}`}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.92 }}
+                        onClick={toggle}
+                        className={`relative z-10 flex items-center justify-center w-20 h-20 rounded-full transition-all duration-500 cursor-pointer ${isOn
+                            ? 'bg-gradient-to-b from-emerald-400 to-emerald-600 shadow-[0_0_40px_rgba(16,185,129,0.4),inset_0_2px_0_rgba(255,255,255,0.3)]'
+                            : 'bg-gradient-to-b from-neutral-800 to-neutral-900 border border-neutral-700/50 shadow-[inset_0_4px_10px_rgba(0,0,0,0.5),0_2px_10px_rgba(0,0,0,0.5)]'
+                            }`}
+                    >
+                        <motion.div
+                            animate={{
+                                scale: isOn ? 1.1 : 1,
+                            }}
+                            transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                        >
+                            <Power
+                                className={`transition-colors duration-500 ${isOn ? 'text-white drop-shadow-md' : 'text-neutral-500'}`}
+                                size={28}
+                                strokeWidth={isOn ? 3 : 2}
+                            />
+                        </motion.div>
+                    </motion.button>
+                </div>
+
+                {/* STATUS TEXT */}
+                <motion.div
+                    className="mt-6 flex items-center gap-2"
+                    animate={{ opacity: 1 }}
                 >
-                    <Power className={isOn ? 'text-white' : 'text-gray-500'} size={32} />
-                </motion.button>
-                <motion.span
-                    animate={{ color: isOn ? '#10b981' : '#6b7280' }}
-                    className="mt-4 text-xs font-black uppercase tracking-[0.2em]"
-                >
-                    {isOn ? 'Active' : 'Standby'}
-                </motion.span>
+                    <motion.div
+                        animate={{
+                            backgroundColor: isOn ? '#10b981' : '#525252',
+                            boxShadow: isOn ? '0 0 10px #10b981' : 'none'
+                        }}
+                        className="w-1.5 h-1.5 rounded-full"
+                    />
+                    <motion.span
+                        animate={{ color: isOn ? '#10b981' : '#737373' }}
+                        className="text-[11px] font-bold uppercase tracking-[0.2em]"
+                    >
+                        {isOn ? 'Active' : 'Standby'}
+                    </motion.span>
+                </motion.div>
             </div>
-        </div>
+        </motion.div>
     );
 };

@@ -9,7 +9,7 @@ interface MotionWidgetProps {
     onRemove: () => void;
 }
 
-export const MotionWidget: React.FC<MotionWidgetProps> = ({ id, entityId, onRemove }) => {
+export const MotionWidget: React.FC<MotionWidgetProps> = ({ id: _id, entityId, onRemove }) => {
     const { entities } = useHAStore();
     const entity = entities ? (entities[entityId] as any) : null;
 
@@ -21,8 +21,8 @@ export const MotionWidget: React.FC<MotionWidgetProps> = ({ id, entityId, onRemo
 
     return (
         <div className={`flex flex-col h-full backdrop-blur-xl border rounded-3xl overflow-hidden shadow-2xl group transition-all duration-700 ${isDetected
-                ? 'bg-red-500/20 border-red-500/50 animate-pulse-slow'
-                : 'bg-gray-800/40 border-gray-700/50 hover:border-blue-500/30'
+            ? 'bg-red-500/20 border-red-500/50 animate-pulse-slow'
+            : 'bg-gray-800/40 border-gray-700/50 hover:border-blue-500/30'
             }`}>
             <div className="p-4 flex items-center justify-between">
                 <div className="flex items-center space-x-3">

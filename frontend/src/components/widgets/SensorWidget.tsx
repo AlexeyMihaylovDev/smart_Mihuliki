@@ -9,7 +9,7 @@ interface SensorWidgetProps {
     onRemove: () => void;
 }
 
-export const SensorWidget: React.FC<SensorWidgetProps> = ({ id, entityId, onRemove }) => {
+export const SensorWidget: React.FC<SensorWidgetProps> = ({ id: _id, entityId, onRemove }) => {
     const { entities } = useHAStore();
     const entity = entities ? (entities[entityId] as any) : null;
 

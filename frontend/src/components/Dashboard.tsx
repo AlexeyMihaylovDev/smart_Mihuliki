@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import GridLayout, { Layout } from 'react-grid-layout';
+import { Layout, Responsive, WidthProvider } from 'react-grid-layout';
+const ResponsiveGridLayout = WidthProvider(Responsive);
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import { useDashboardStore } from '../store/useStore';
@@ -59,13 +60,13 @@ export const Dashboard: React.FC = () => {
                         <p>No widgets added yet. Click "Add Widget" to start.</p>
                     </div>
                 ) : (
-                    <GridLayout
+                    <ResponsiveGridLayout
                         className="layout"
-                        layout={layout}
-                        cols={12}
+                        layouts={{ lg: layout }}
+                        breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+                        cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
                         rowHeight={80}
-                        width={1200}
-                        onLayoutChange={onLayoutChange}
+                        onLayoutChange={(_currentLayout, allLayouts) => onLayoutChange(allLayouts.lg)}
                         draggableHandle=".drag-handle"
                         isDraggable={isEditMode}
                         isResizable={isEditMode}
@@ -85,7 +86,7 @@ export const Dashboard: React.FC = () => {
                                 )}
                             </div>
                         ))}
-                    </GridLayout>
+                    </ResponsiveGridLayout>
                 )}
             </motion.div>
         </div>
