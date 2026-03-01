@@ -1,0 +1,25 @@
+{
+  "name": "smart-home-ui-assistant",
+  "version": "1.0.0",
+  "description": "Smart Home UI Dashboard & AI Assistant",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:backend": "npm run dev --workspace=backend",
+    "build": "npm run build --workspaces",
+    "lint": "npm run lint --workspaces",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0"
+  },
+  "dependencies": {
+    "lucide-react": "^0.575.0"
+  }
+}

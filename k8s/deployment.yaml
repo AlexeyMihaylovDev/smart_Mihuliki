@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smart-home-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: smart-home-backend
+  template:
+    metadata:
+      labels:
+        app: smart-home-backend
+    spec:
+      containers:
+      - name: backend
+        image: smart-home-backend:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 3001
+        volumeMounts:
+        - name: sqlite-data
+          mountPath: /app/backend/prisma/
+      volumes:
+      - name: sqlite-data
+        persistentVolumeClaim:
+          claimName: sqlite-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: smart-home-backend
+spec:
+  selector:
+    app: smart-home-backend
+  ports:
+  - port: 3001
+    targetPort: 3001
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smart-home-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: smart-home-frontend
+  template:
+    metadata:
+      labels:
+        app: smart-home-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: smart-home-frontend:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: smart-home-frontend
+spec:
+  selector:
+    app: smart-home-frontend
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30080
+  type: NodePort
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sqlite-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

@@ -1,0 +1,29 @@
+{
+    "name": "backend",
+    "version": "1.0.0",
+    "description": "Backend API for Smart Home UI Assistant",
+    "main": "src/index.ts",
+    "scripts": {
+        "dev": "nodemon src/index.ts",
+        "build": "tsc",
+        "start": "node dist/index.js",
+        "lint": "eslint src/ --ext .ts"
+    },
+    "dependencies": {
+        "@prisma/client": "^5.0.0",
+        "axios": "^1.6.8",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.0",
+        "express": "^4.19.0",
+        "prom-client": "^15.1.0"
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.17",
+        "@types/express": "^4.17.21",
+        "@types/node": "^20.0.0",
+        "nodemon": "^3.1.0",
+        "prisma": "^5.0.0",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.4.0"
+    }
+}
