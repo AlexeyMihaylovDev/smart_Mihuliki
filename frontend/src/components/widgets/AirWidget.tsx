@@ -17,7 +17,10 @@ export const AirWidget: React.FC<AirWidgetProps> = ({ id, entityId, onRemove, is
     if (!entity) return null;
 
     const state = entity.state;
-    const { temperature, current_temperature, min_temp = 16, max_temp = 30, friendly_name } = entity.attributes;
+    // Handle different climate attribute naming schemes
+    const temperature = entity.attributes.temperature ?? entity.attributes.target_temp ?? entity.attributes.target_temperature ?? 0;
+    const current_temperature = entity.attributes.current_temperature ?? entity.attributes.current_temp ?? 0;
+    const { min_temp = 16, max_temp = 30, friendly_name } = entity.attributes;
     const name = friendly_name || entityId;
 
     // Маппинг цветов и стилей для разных режимов

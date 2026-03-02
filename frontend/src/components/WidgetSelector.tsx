@@ -43,7 +43,7 @@ export const WidgetSelector: React.FC<WidgetSelectorProps> = ({ isOpen, onClose 
         if (entityId.startsWith('light.')) return 'light';
         if (entityId.startsWith('switch.')) return 'switch';
         if (entityId.startsWith('cover.')) return 'cover';
-        if (entityId.startsWith('climate.')) return 'sensor';
+        if (entityId.startsWith('climate.')) return 'generic'; // Generic dispatch handles domain === 'climate'
         if (entityId.startsWith('sensor.') || entityId.startsWith('binary_sensor.')) return 'sensor';
         return 'generic';
     };

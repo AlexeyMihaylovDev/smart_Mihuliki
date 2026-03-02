@@ -2,7 +2,14 @@ import { create } from 'zustand';
 import { HassEntities } from 'home-assistant-js-websocket';
 import { Layout } from 'react-grid-layout';
 
-const API_URL = (import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:3001/api';
+const getApiUrl = () => {
+    if (typeof window === 'undefined') return 'http://localhost:3001/api';
+    const hostname = window.location.hostname;
+    // Always use port 3001 for the backend API
+    return `http://${hostname}:3001/api`;
+};
+
+const API_URL = (import.meta as any).env?.VITE_BACKEND_URL || getApiUrl();
 
 interface AuthState {
     haUrl: string | null;
