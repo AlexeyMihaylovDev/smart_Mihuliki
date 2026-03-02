@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cleanEntityName } from '../../utils/naming';
 import { Sparkles, Play, Check, X } from 'lucide-react';
 import { useHAStore } from '../../store/useStore';
 
@@ -36,7 +37,7 @@ export const SceneWidget: React.FC<SceneWidgetProps> = ({ entityId, onRemove, is
         }
     };
 
-    const friendlyName = entity?.attributes?.friendly_name || entityId.split('.')[1].replace(/_/g, ' ');
+    const friendlyName = cleanEntityName(entity?.attributes?.friendly_name || '', entityId);
 
     return (
         <motion.div
@@ -44,8 +45,8 @@ export const SceneWidget: React.FC<SceneWidgetProps> = ({ entityId, onRemove, is
             whileTap={{ scale: 0.98 }}
             onClick={activateScene}
             className={`relative h-full w-full rounded-[2.5rem] p-6 flex flex-col items-center justify-center cursor-pointer transition-all duration-500 group overflow-hidden ${isSuccess
-                    ? 'bg-emerald-500/20 border-emerald-500/40 shadow-[0_0_30px_rgba(16,185,129,0.2)]'
-                    : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 shadow-xl'
+                ? 'bg-emerald-500/20 border-emerald-500/40 shadow-[0_0_30px_rgba(16,185,129,0.2)]'
+                : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 shadow-xl'
                 }`}
         >
             {/* Background Glow */}
@@ -63,8 +64,8 @@ export const SceneWidget: React.FC<SceneWidgetProps> = ({ entityId, onRemove, is
 
             <div className="relative z-10 flex flex-col items-center gap-4">
                 <div className={`p-5 rounded-[2rem] transition-all duration-500 ${isSuccess
-                        ? 'bg-emerald-500 text-white scale-110 shadow-lg shadow-emerald-500/50'
-                        : 'bg-white/5 text-purple-400 group-hover:bg-purple-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-purple-500/30'
+                    ? 'bg-emerald-500 text-white scale-110 shadow-lg shadow-emerald-500/50'
+                    : 'bg-white/5 text-purple-400 group-hover:bg-purple-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-purple-500/30'
                     }`}>
                     {isActivating ? (
                         <motion.div

@@ -2,6 +2,7 @@ import React from 'react';
 import { useHAStore } from '../../store/useStore';
 import { Activity, Zap, Droplets, Wind, X, Battery, BatteryLow, BatteryMedium, BatteryWarning } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { cleanEntityName } from '../../utils/naming';
 
 interface SensorWidgetProps {
     id: string;
@@ -18,7 +19,7 @@ export const SensorWidget: React.FC<SensorWidgetProps> = ({ id: _id, entityId, o
 
     const state = entity.state;
     const unit = entity.attributes.unit_of_measurement || '';
-    const name = entity.attributes.friendly_name || entityId;
+    const name = cleanEntityName(entity.attributes.friendly_name, entityId);
     const deviceClass = entity.attributes.device_class;
     const batteryLevel = entity.attributes.battery_level || entity.attributes.battery;
 

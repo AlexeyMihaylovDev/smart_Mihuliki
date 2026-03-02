@@ -2,6 +2,7 @@ import React from 'react';
 import { useHAStore } from '../../store/useStore';
 import { CloudRain, Droplets, Wind, X, Cloud, Sun, CloudLightning, CloudSnow } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { cleanEntityName } from '../../utils/naming';
 
 interface WeatherWidgetProps {
     id: string;
@@ -20,6 +21,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ entityId, onRemove
     const humidity = entity.attributes.humidity;
     const windSpeed = entity.attributes.wind_speed;
     const condition = entity.state;
+    const name = cleanEntityName(entity.attributes.friendly_name, entityId);
 
     const getWeatherIcon = (state: string) => {
         switch (state) {
@@ -53,7 +55,8 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ entityId, onRemove
 
             <div className="flex justify-between items-start">
                 <div className="flex flex-col">
-                    <span className="text-5xl font-black text-white tracking-tighter italic">{temperature}°</span>
+                    <span className="text-[10px] font-black text-blue-300 uppercase tracking-[0.2em] opacity-60 mb-1">{name}</span>
+                    <span className="text-5xl font-black text-white tracking-tighter italic leading-none">{temperature}°</span>
                     <span className="text-sm font-bold text-blue-300 mt-1 uppercase tracking-widest opacity-80">{condition.replace(/_/g, ' ')}</span>
                 </div>
                 <motion.div

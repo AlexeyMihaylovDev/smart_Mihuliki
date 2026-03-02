@@ -2,6 +2,7 @@ import React from 'react';
 import { useHAStore } from '../../store/useStore';
 import { Activity, X, Home, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { cleanEntityName } from '../../utils/naming';
 
 interface SensorListWidgetProps {
     id: string;
@@ -68,7 +69,7 @@ export const SensorListWidget: React.FC<SensorListWidgetProps> = ({
                 ) : (
                     sensorEntities.map((entity, idx) => {
                         const { state, attributes } = entity;
-                        const name = attributes?.friendly_name || entity.id;
+                        const name = cleanEntityName(attributes?.friendly_name || '', entity.id);
                         const deviceClass = attributes?.device_class || 'motion';
 
                         const isDetected = state === 'on';

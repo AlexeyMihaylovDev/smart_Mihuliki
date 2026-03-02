@@ -1,6 +1,7 @@
 import React from 'react';
 import { Blinds, ChevronUp, ChevronDown, Square, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cleanEntityName } from '../../utils/naming';
 import { useHAStore } from '../../store/useStore';
 
 interface CoverWidgetProps {
@@ -21,7 +22,7 @@ export const CoverWidget: React.FC<CoverWidgetProps> = ({ id: _id, entityId, onR
     const position = entity.attributes.current_position !== undefined
         ? entity.attributes.current_position
         : (state === 'open' ? 100 : 0);
-    const name = entity.attributes.friendly_name || entityId;
+    const name = cleanEntityName(entity.attributes.friendly_name, entityId);
 
     // Считаем открытым, если позиция больше 0 или статус 'open'
     const isOpen = position > 0 || state === 'open';

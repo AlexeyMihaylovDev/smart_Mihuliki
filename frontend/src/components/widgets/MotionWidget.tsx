@@ -2,6 +2,7 @@ import React from 'react';
 import { useHAStore } from '../../store/useStore';
 import { Eye, ShieldAlert, X, Battery, BatteryLow, BatteryMedium, BatteryWarning, Home, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cleanEntityName } from '../../utils/naming';
 
 interface MotionWidgetProps {
     id: string;
@@ -17,7 +18,7 @@ export const MotionWidget: React.FC<MotionWidgetProps> = ({ id: _id, entityId, o
     if (!entity) return null;
 
     const state = entity.state;
-    const name = entity.attributes.friendly_name || entityId;
+    const name = cleanEntityName(entity.attributes.friendly_name, entityId);
     const deviceClass = entity.attributes.device_class || 'motion';
     const batteryLevel = entity.attributes.battery_level || entity.attributes.battery;
 

@@ -6,6 +6,7 @@ import {
     Sofa, Bed, Utensils, Bath, X
 } from 'lucide-react';
 import { useHAStore } from '../../store/useStore';
+import { cleanEntityName } from '../../utils/naming';
 
 const RoomIcon = ({ iconName, ...props }: any) => {
     const icons: any = { Sofa, Bed, Utensils, Bath, MapPin };
@@ -137,7 +138,7 @@ export const DreameVacuumWidget: React.FC<DreameVacuumWidgetProps> = ({ entityId
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest leading-none mb-1">Dreame OS v2.0</span>
-                                <span className="text-sm font-black text-white italic uppercase tracking-tighter drop-shadow-lg">{attrs.friendly_name || 'Dreame Robot'}</span>
+                                <span className="text-sm font-black text-white italic uppercase tracking-tighter drop-shadow-lg">{cleanEntityName(attrs.friendly_name, entityId)}</span>
                             </div>
                         </div>
 

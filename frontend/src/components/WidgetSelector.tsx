@@ -1,41 +1,76 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useHAStore, useDashboardStore } from '../store/useStore';
 import { Search, X, Plus, Lightbulb, ToggleLeft, Activity, Box, Thermometer, ShieldAlert, ListFilter, Blinds, CheckCircle2, Circle, Fan, SignalLow, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cleanEntityName } from '../utils/naming';
 
 interface WidgetSelectorProps {
     isOpen: boolean;
     onClose: () => void;
 }
 
+type Category = 'all' | 'light' | 'switch' | 'climate' | 'vacuum' | 'cover' | 'security' | 'sensors';
+
 export const WidgetSelector: React.FC<WidgetSelectorProps> = ({ isOpen, onClose }) => {
     const { entities, connection } = useHAStore();
     const { addWidget, addSensorListWidget, addMultipleWidgets } = useDashboardStore();
     const [search, setSearch] = useState('');
     const [tab, setTab] = useState<'devices' | 'lists'>('devices');
+    const [category, setCategory] = useState<Category>('all');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
+    const categories: { id: Category; label: string; icon: any }[] = [
+        { id: 'all', label: 'All', icon: Box },
+        { id: 'light', label: 'Lights', icon: Lightbulb },
+        { id: 'switch', label: 'Switches', icon: ToggleLeft },
+        { id: 'climate', label: 'Climate', icon: Thermometer },
+        { id: 'vacuum', label: 'Vacuum', icon: Fan },
+        { id: 'cover', label: 'Covers', icon: Blinds },
+        { id: 'security', label: 'Security', icon: ShieldAlert },
+        { id: 'sensors', label: 'Sensors', icon: Activity },
+    ];
+
     // Compute entities only if they exist
-    const allBinarySensors = entities ? Object.values(entities).filter((entity: any) => {
+    const allBinarySensors = useMemo(() => entities ? Object.values(entities).filter((entity: any) => {
         const domain = entity.entity_id.split('.')[0];
         return domain === 'binary_sensor';
-    }) : [];
+    }) : [], [entities]);
 
-    const motionSensors = allBinarySensors.filter((entity: any) =>
+    const motionSensors = useMemo(() => allBinarySensors.filter((entity: any) =>
         entity.entity_id.includes('motion') || entity.entity_id.includes('presence')
-    );
+    ), [allBinarySensors]);
 
-    const filteredEntities = entities ? Object.values(entities).filter((entity: any) => {
-        const domain = entity.entity_id.split('.')[0];
-        const isSelectedType = ['switch', 'light', 'climate', 'cover'].includes(domain) ||
-            domain.includes('vacuum') ||
-            (domain === 'binary_sensor' && (entity.entity_id.includes('motion') || entity.entity_id.includes('presence')));
+    const filteredEntities = useMemo(() => {
+        if (!entities) return [];
+        return Object.values(entities).filter((entity: any) => {
+            const domain = entity.entity_id.split('.')[0];
+            const friendlyName = entity.attributes.friendly_name || '';
+            const entityId = entity.entity_id;
 
-        const matchesSearch = entity.entity_id.toLowerCase().includes(search.toLowerCase()) ||
-            (entity.attributes.friendly_name || '').toLowerCase().includes(search.toLowerCase());
+            // Domain mapping to categories
+            const categoryMap: Record<string, Category> = {
+                light: 'light',
+                switch: 'switch',
+                climate: 'climate',
+                cover: 'cover',
+            };
 
-        return isSelectedType && matchesSearch;
-    }).slice(0, 500) : [];
+            let entityCategory: Category = categoryMap[domain] || 'sensors';
+            if (domain.includes('vacuum')) entityCategory = 'vacuum';
+            if (domain === 'binary_sensor' && (entityId.includes('motion') || entityId.includes('presence'))) {
+                entityCategory = 'security';
+            }
+
+            const matchesCategory = category === 'all' || entityCategory === category;
+
+            const matchesSearch = entityId.toLowerCase().includes(search.toLowerCase()) ||
+                friendlyName.toLowerCase().includes(search.toLowerCase());
+
+            const isSupported = ['switch', 'light', 'climate', 'cover', 'sensor', 'binary_sensor', 'weather', 'scene'].includes(domain) || domain.includes('vacuum');
+
+            return isSupported && matchesCategory && matchesSearch;
+        }).slice(0, 500);
+    }, [entities, category, search]);
 
     const getEntityType = (entityId: string): any => {
         if (entityId.startsWith('light.')) return 'light';
@@ -178,10 +213,10 @@ export const WidgetSelector: React.FC<WidgetSelectorProps> = ({ isOpen, onClose 
                                     </button>
                                 </div>
 
-                                <div className="flex-grow overflow-y-auto custom-scrollbar no-scrollbar">
+                                <div className="flex-grow overflow-y-auto custom-scrollbar no-scrollbar flex flex-col">
                                     {tab === 'devices' && (
                                         <>
-                                            <div className="p-6 bg-black/5 space-y-4">
+                                            <div className="p-6 bg-black/5 space-y-4 sticky top-0 z-30 backdrop-blur-xl border-b border-white/5">
                                                 <div className="relative">
                                                     <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-neutral-500" size={18} />
                                                     <input
@@ -193,7 +228,20 @@ export const WidgetSelector: React.FC<WidgetSelectorProps> = ({ isOpen, onClose 
                                                     />
                                                 </div>
 
-                                                <div className="flex items-center justify-between px-2">
+                                                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                                                    {categories.map((cat) => (
+                                                        <button
+                                                            key={cat.id}
+                                                            onClick={() => setCategory(cat.id)}
+                                                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border whitespace-nowrap ${category === cat.id ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/20' : 'bg-white/5 border-transparent text-neutral-500 hover:border-white/10 hover:text-neutral-300'}`}
+                                                        >
+                                                            <cat.icon size={12} />
+                                                            {cat.label}
+                                                        </button>
+                                                    ))}
+                                                </div>
+
+                                                <div className="flex items-center justify-between px-2 pt-2">
                                                     <span className="text-[10px] font-black text-neutral-500 uppercase tracking-widest">
                                                         {filteredEntities.length} Devices Available
                                                     </span>
@@ -204,10 +252,12 @@ export const WidgetSelector: React.FC<WidgetSelectorProps> = ({ isOpen, onClose 
                                                 </div>
                                             </div>
 
-                                            <div className="p-6 pt-0 space-y-2">
+                                            <div className="p-6 pt-2 space-y-2">
                                                 {filteredEntities.map((entity: any) => {
                                                     const type = getEntityType(entity.entity_id);
                                                     const isSelected = selectedIds.has(entity.entity_id);
+                                                    const cleanName = cleanEntityName(entity.attributes.friendly_name, entity.entity_id);
+
                                                     return (
                                                         <motion.div
                                                             layout
@@ -225,7 +275,7 @@ export const WidgetSelector: React.FC<WidgetSelectorProps> = ({ isOpen, onClose 
                                                                 </div>
                                                                 <div>
                                                                     <div className={`text-sm font-bold transition-colors ${isSelected ? 'text-blue-400' : 'text-white'}`}>
-                                                                        {entity.attributes.friendly_name || entity.entity_id}
+                                                                        {cleanName}
                                                                     </div>
                                                                     <div className="text-[10px] text-neutral-500 font-black tracking-widest uppercase mt-0.5">{entity.entity_id.split('.')[0]}</div>
                                                                 </div>

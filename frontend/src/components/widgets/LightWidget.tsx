@@ -2,6 +2,7 @@ import React from 'react';
 import { useHAStore } from '../../store/useStore';
 import { Lightbulb, Sun, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cleanEntityName } from '../../utils/naming';
 
 interface LightWidgetProps {
     id: string;
@@ -18,7 +19,7 @@ export const LightWidget: React.FC<LightWidgetProps> = ({ entityId, onRemove, is
 
     const state = entity.state;
     const brightness = entity.attributes.brightness ? Math.round((entity.attributes.brightness / 255) * 100) : 0;
-    const name = entity.attributes.friendly_name || entityId;
+    const name = cleanEntityName(entity.attributes.friendly_name, entityId);
     const isOn = state === 'on';
 
     const toggle = async () => {

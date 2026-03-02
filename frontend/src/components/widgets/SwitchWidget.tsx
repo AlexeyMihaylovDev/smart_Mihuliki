@@ -2,6 +2,7 @@ import React from 'react';
 import { useHAStore } from '../../store/useStore';
 import { Power, X, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cleanEntityName } from '../../utils/naming';
 
 interface SwitchWidgetProps {
     id: string;
@@ -17,7 +18,7 @@ export const SwitchWidget: React.FC<SwitchWidgetProps> = ({ entityId, onRemove, 
     if (!entity) return null;
 
     const state = entity.state;
-    const name = entity.attributes.friendly_name || entityId;
+    const name = cleanEntityName(entity.attributes.friendly_name, entityId);
     const isOn = state === 'on';
 
     const toggle = async () => {

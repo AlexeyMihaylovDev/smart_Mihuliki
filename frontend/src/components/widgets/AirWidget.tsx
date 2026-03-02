@@ -2,6 +2,7 @@ import React from 'react';
 import { useHAStore } from '../../store/useStore';
 import { Power, X, Snowflake, Flame, Droplets, Fan, Sparkles, Thermometer, Plus, Minus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cleanEntityName } from '../../utils/naming';
 
 interface AirWidgetProps {
     id: string;
@@ -20,8 +21,8 @@ export const AirWidget: React.FC<AirWidgetProps> = ({ id, entityId, onRemove, is
     // Handle different climate attribute naming schemes
     const temperature = entity.attributes.temperature ?? entity.attributes.target_temp ?? entity.attributes.target_temperature ?? 0;
     const current_temperature = entity.attributes.current_temperature ?? entity.attributes.current_temp ?? 0;
-    const { min_temp = 16, max_temp = 30, friendly_name } = entity.attributes;
-    const name = friendly_name || entityId;
+    const { min_temp = 16, max_temp = 30 } = entity.attributes;
+    const name = cleanEntityName(entity.attributes.friendly_name, entityId);
 
     // Маппинг цветов и стилей для разных режимов
     const styleMap: Record<string, any> = {
