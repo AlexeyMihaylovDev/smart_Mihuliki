@@ -22,7 +22,7 @@ interface DashboardWidget {
     entityId: string;          // primary entity (or '__list__' for list widgets)
     entityIds?: string[];      // used by SensorListWidget
     title?: string;            // optional title for list widgets
-    type: 'light' | 'sensor' | 'switch' | 'generic' | 'sensor_list';
+    type: 'light' | 'sensor' | 'switch' | 'generic' | 'sensor_list' | 'cover';
 }
 
 interface DashboardState {
@@ -68,8 +68,9 @@ export const useDashboardStore = create<DashboardState>((set) => ({
         else if (entityId.startsWith('climate.')) { w = 4; h = 5; }
         else if (entityId.includes('motion') || entityId.includes('presence')) { w = 2; h = 3; }
         else if (type === 'sensor') { w = 2; h = 3; }
+        else if (type === 'cover') { w = 2; h = 4; }
 
-        const newLayout = [...state.layout, { i: id, x: 0, y: Infinity, w, h, minW: 1, minH: 1 }];
+        const newLayout = [...state.layout, { i: id, x: 0, y: 1000, w, h, minW: 1, minH: 1 }];
         localStorage.setItem('dashboardWidgets', JSON.stringify(newWidgets));
         localStorage.setItem('dashboardLayout', JSON.stringify(newLayout));
         return { widgets: newWidgets, layout: newLayout };
@@ -87,7 +88,7 @@ export const useDashboardStore = create<DashboardState>((set) => ({
         const newWidgets = [...state.widgets, newWidget];
         // Tall default: 2 wide, height based on number of sensors
         const h = Math.min(Math.max(3, entityIds.length + 2), 8);
-        const newLayout = [...state.layout, { i: id, x: 0, y: Infinity, w: 3, h, minW: 1, minH: 1 }];
+        const newLayout = [...state.layout, { i: id, x: 0, y: 1000, w: 3, h, minW: 1, minH: 1 }];
         localStorage.setItem('dashboardWidgets', JSON.stringify(newWidgets));
         localStorage.setItem('dashboardLayout', JSON.stringify(newLayout));
         return { widgets: newWidgets, layout: newLayout };

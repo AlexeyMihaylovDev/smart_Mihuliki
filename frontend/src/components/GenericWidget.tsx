@@ -6,13 +6,14 @@ import { AirWidget } from './widgets/AirWidget';
 import { SensorWidget } from './widgets/SensorWidget';
 import { MotionWidget } from './widgets/MotionWidget';
 import { SensorListWidget } from './widgets/SensorListWidget';
+import { CoverWidget } from './widgets/CoverWidget';
 
 interface GenericWidgetProps {
     id: string;
     entityId: string;
     entityIds?: string[];
     title?: string;
-    type: 'light' | 'sensor' | 'switch' | 'generic' | 'sensor_list';
+    type: 'light' | 'sensor' | 'switch' | 'generic' | 'sensor_list' | 'cover';
     isEditMode: boolean;
 }
 
@@ -31,6 +32,7 @@ export const GenericWidget: React.FC<GenericWidgetProps> = ({ id, entityId, enti
     if (domain === 'light') return <LightWidget id={id} entityId={entityId} onRemove={onRemove} isEditMode={isEditMode} />;
     if (domain === 'switch') return <SwitchWidget id={id} entityId={entityId} onRemove={onRemove} isEditMode={isEditMode} />;
     if (domain === 'climate') return <AirWidget id={id} entityId={entityId} onRemove={onRemove} isEditMode={isEditMode} />;
+    if (domain === 'cover') return <CoverWidget id={id} entityId={entityId} onRemove={onRemove} isEditMode={isEditMode} />;
     if (domain === 'sensor') return <SensorWidget id={id} entityId={entityId} onRemove={onRemove} isEditMode={isEditMode} />;
     if (domain === 'binary_sensor' && (entityId.includes('motion') || entityId.includes('presence'))) {
         return <MotionWidget id={id} entityId={entityId} onRemove={onRemove} isEditMode={isEditMode} />;

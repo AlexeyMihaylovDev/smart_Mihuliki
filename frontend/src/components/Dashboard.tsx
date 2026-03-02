@@ -49,7 +49,6 @@ export const Dashboard: React.FC = () => {
             <WidgetSelector isOpen={isSelectorOpen} onClose={() => setIsSelectorOpen(false)} />
 
             <motion.div
-                layout
                 className="relative min-h-[400px]"
             >
                 {widgets.length === 0 ? (

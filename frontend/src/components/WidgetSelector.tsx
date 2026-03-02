@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useHAStore, useDashboardStore } from '../store/useStore';
-import { Search, X, Plus, Lightbulb, ToggleLeft, Activity, Box, Thermometer, ShieldAlert, ListFilter } from 'lucide-react';
+import { Search, X, Plus, Lightbulb, ToggleLeft, Activity, Box, Thermometer, ShieldAlert, ListFilter, Blinds } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface WidgetSelectorProps {
@@ -29,7 +29,7 @@ export const WidgetSelector: React.FC<WidgetSelectorProps> = ({ isOpen, onClose 
 
     const filteredEntities = Object.values(entities).filter((entity: any) => {
         const domain = entity.entity_id.split('.')[0];
-        const isSelectedType = ['switch', 'light', 'climate'].includes(domain) ||
+        const isSelectedType = ['switch', 'light', 'climate', 'cover'].includes(domain) ||
             (domain === 'binary_sensor' && (entity.entity_id.includes('motion') || entity.entity_id.includes('presence')));
 
         const matchesSearch = entity.entity_id.toLowerCase().includes(search.toLowerCase()) ||
@@ -38,9 +38,10 @@ export const WidgetSelector: React.FC<WidgetSelectorProps> = ({ isOpen, onClose 
         return isSelectedType && matchesSearch;
     }).slice(0, 70);
 
-    const getEntityType = (entityId: string): 'light' | 'switch' | 'sensor' | 'generic' => {
+    const getEntityType = (entityId: string): 'light' | 'switch' | 'sensor' | 'generic' | 'cover' => {
         if (entityId.startsWith('light.')) return 'light';
         if (entityId.startsWith('switch.')) return 'switch';
+        if (entityId.startsWith('cover.')) return 'cover';
         if (entityId.startsWith('climate.')) return 'sensor';
         if (entityId.startsWith('sensor.') || entityId.startsWith('binary_sensor.')) return 'sensor';
         return 'generic';
@@ -50,6 +51,7 @@ export const WidgetSelector: React.FC<WidgetSelectorProps> = ({ isOpen, onClose 
         const domain = entityId.split('.')[0];
         if (domain === 'light') return <Lightbulb size={18} />;
         if (domain === 'switch') return <ToggleLeft size={18} />;
+        if (domain === 'cover') return <Blinds size={18} />;
         if (domain === 'climate') return <Thermometer size={18} />;
         if (domain === 'binary_sensor' && (entityId.includes('motion') || entityId.includes('presence'))) return <ShieldAlert size={18} />;
         if (domain === 'sensor') return <Activity size={18} />;
