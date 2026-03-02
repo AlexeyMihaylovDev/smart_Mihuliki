@@ -29,3 +29,17 @@ model DashboardConfig {
   layout    String   // JSON string
   updatedAt DateTime @updatedAt
 }
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model HASettings {
+  id        Int      @id @default(1)
+  haUrl     String
+  haToken   String
+  updatedAt DateTime @updatedAt
+}

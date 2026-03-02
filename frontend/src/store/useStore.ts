@@ -12,11 +12,17 @@ const getApiUrl = () => {
 const API_URL = (import.meta as any).env?.VITE_BACKEND_URL || getApiUrl();
 
 interface AuthState {
-    haUrl: string | null;
-    haToken: string | null;
+    user: { id: number, username: string } | null;
     isAuthenticated: boolean;
-    setAuth: (url: string, token: string) => void;
+    login: (username: string, password: string) => Promise<boolean>;
     logout: () => void;
+}
+
+interface SettingsState {
+    haUrl: string;
+    haToken: string;
+    fetchSettings: () => Promise<void>;
+    updateSettings: (url: string, token: string) => Promise<void>;
 }
 
 interface HAState {
@@ -46,18 +52,58 @@ interface DashboardState {
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-    haUrl: localStorage.getItem('haUrl'),
-    haToken: localStorage.getItem('haToken'),
-    isAuthenticated: !!localStorage.getItem('haUrl') && !!localStorage.getItem('haToken'),
-    setAuth: (url, token) => {
-        localStorage.setItem('haUrl', url);
-        localStorage.setItem('haToken', token);
-        set({ haUrl: url, haToken: token, isAuthenticated: true });
+    user: JSON.parse(localStorage.getItem('user') || 'null'),
+    isAuthenticated: !!localStorage.getItem('user'),
+    login: async (username, password) => {
+        try {
+            const res = await fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            if (data.success) {
+                localStorage.setItem('user', JSON.stringify(data.user));
+                set({ user: data.user, isAuthenticated: true });
+                return true;
+            }
+            return false;
+        } catch (e) {
+            console.error('Login failed', e);
+            return false;
+        }
     },
     logout: () => {
-        localStorage.removeItem('haUrl');
-        localStorage.removeItem('haToken');
-        set({ haUrl: null, haToken: null, isAuthenticated: false });
+        localStorage.removeItem('user');
+        set({ user: null, isAuthenticated: false });
+    }
+}));
+
+export const useSettingsStore = create<SettingsState>((set) => ({
+    haUrl: '',
+    haToken: '',
+    fetchSettings: async () => {
+        try {
+            const res = await fetch(`${API_URL}/settings/ha`);
+            const data = await res.json();
+            if (data) {
+                set({ haUrl: data.haUrl || '', haToken: data.haToken || '' });
+            }
+        } catch (e) {
+            console.error('Failed to fetch settings', e);
+        }
+    },
+    updateSettings: async (url, token) => {
+        try {
+            await fetch(`${API_URL}/settings/ha`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ haUrl: url, haToken: token })
+            });
+            set({ haUrl: url, haToken: token });
+        } catch (e) {
+            console.error('Failed to update settings', e);
+        }
     }
 }));
 

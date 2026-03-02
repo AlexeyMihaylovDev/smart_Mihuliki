@@ -1,20 +1,25 @@
 import React, { useState } from 'react';
 import { Mic, Send, MessageSquare } from 'lucide-react';
 import axios from 'axios';
-import { useAuthStore } from '../store/useStore';
+import { useSettingsStore } from '../store/useStore';
 
 export const AIChat: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [inputText, setInputText] = useState('');
     const [isListening, setIsListening] = useState(false);
     const [messages, setMessages] = useState<{ role: string, text: string }[]>([]);
-    const { haUrl, haToken } = useAuthStore();
+    const { haUrl, haToken } = useSettingsStore();
+
+    const getApiUrl = () => {
+        const hostname = window.location.hostname;
+        return `http://${hostname}:3001/api`;
+    };
 
     let recognition: any = null;
     if ('webkitSpeechRecognition' in window) {
         recognition = new (window as any).webkitSpeechRecognition();
         recognition.continuous = false;
-        recognition.lang = 'en-US'; // Or map from settings
+        recognition.lang = 'en-US';
 
         recognition.onresult = (event: any) => {
             const text = event.results[0][0].transcript;
@@ -45,7 +50,7 @@ export const AIChat: React.FC = () => {
         setInputText('');
 
         try {
-            const resp = await axios.post('http://localhost:3001/api/ai/command', {
+            const resp = await axios.post(`${getApiUrl()}/ai/command`, {
                 command: text
             }, {
                 headers: {

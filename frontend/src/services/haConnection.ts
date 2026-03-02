@@ -4,47 +4,49 @@ import {
     subscribeEntities,
     Connection,
 } from 'home-assistant-js-websocket';
-import { useAuthStore, useHAStore } from '../store/useStore';
+import { useHAStore, useSettingsStore } from '../store/useStore';
 
 let connectionPromise: Promise<Connection> | null = null;
 
 export const connectHA = async () => {
-    const { haUrl, haToken, logout } = useAuthStore.getState();
+    const { haUrl, haToken, fetchSettings } = useSettingsStore.getState();
 
+    // Ensure settings are loaded
     if (!haUrl || !haToken) {
-        throw new Error("Missing HA credentials");
+        await fetchSettings();
+        const updated = useSettingsStore.getState();
+        if (!updated.haUrl || !updated.haToken) {
+            throw new Error("Home Assistant not configured");
+        }
     }
+
+    const currentUrl = useSettingsStore.getState().haUrl;
+    const currentToken = useSettingsStore.getState().haToken;
 
     if (connectionPromise) {
         return connectionPromise;
     }
 
     try {
-        const auth = createLongLivedTokenAuth(haUrl, haToken);
-
+        const auth = createLongLivedTokenAuth(currentUrl, currentToken);
         connectionPromise = createConnection({ auth });
         const connection = await connectionPromise;
 
         useHAStore.getState().setConnection(connection);
 
-        // Subscribe to entity state changes
         subscribeEntities(connection, (entities) => {
             useHAStore.getState().setEntities(entities);
         });
 
         connection.addEventListener('disconnected', () => {
             console.log('HA WS Disconnected');
-        });
-
-        connection.addEventListener('ready', () => {
-            console.log('HA WS Ready');
+            connectionPromise = null;
         });
 
         return connection;
     } catch (err) {
         console.error("Failed to connect to HA", err);
         connectionPromise = null;
-        logout(); // Clear bad credentials
         throw err;
     }
 };
