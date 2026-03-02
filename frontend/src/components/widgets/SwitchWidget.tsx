@@ -78,6 +78,7 @@ export const SwitchWidget: React.FC<SwitchWidgetProps> = ({ id, entityId, onRemo
                 {isEditMode && (
                     <button
                         onClick={onRemove}
+                        onMouseDown={(e) => e.stopPropagation()}
                         className="p-2 text-neutral-500 hover:text-red-400 hover:bg-red-400/10 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100"
                         aria-label="Remove widget"
                     >

@@ -5,21 +5,29 @@ import { SwitchWidget } from './widgets/SwitchWidget';
 import { AirWidget } from './widgets/AirWidget';
 import { SensorWidget } from './widgets/SensorWidget';
 import { MotionWidget } from './widgets/MotionWidget';
+import { SensorListWidget } from './widgets/SensorListWidget';
 
 interface GenericWidgetProps {
     id: string;
     entityId: string;
-    type: 'light' | 'sensor' | 'switch' | 'generic';
+    entityIds?: string[];
+    title?: string;
+    type: 'light' | 'sensor' | 'switch' | 'generic' | 'sensor_list';
     isEditMode: boolean;
 }
 
-export const GenericWidget: React.FC<GenericWidgetProps> = ({ id, entityId, type: _type, isEditMode }) => {
+export const GenericWidget: React.FC<GenericWidgetProps> = ({ id, entityId, entityIds, title, type: _type, isEditMode }) => {
     const { removeWidget } = useDashboardStore();
 
     const domain = entityId.split('.')[0];
     const onRemove = () => removeWidget(id);
 
-    // Dispatcher logic
+    // Sensor list widget
+    if (_type === 'sensor_list' && entityIds) {
+        return <SensorListWidget id={id} entityIds={entityIds} title={title} onRemove={onRemove} isEditMode={isEditMode} />;
+    }
+
+    // Standard domain-based dispatch
     if (domain === 'light') return <LightWidget id={id} entityId={entityId} onRemove={onRemove} isEditMode={isEditMode} />;
     if (domain === 'switch') return <SwitchWidget id={id} entityId={entityId} onRemove={onRemove} isEditMode={isEditMode} />;
     if (domain === 'climate') return <AirWidget id={id} entityId={entityId} onRemove={onRemove} isEditMode={isEditMode} />;

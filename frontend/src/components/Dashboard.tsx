@@ -77,6 +77,8 @@ export const Dashboard: React.FC = () => {
                                 <GenericWidget
                                     id={widget.id}
                                     entityId={widget.entityId}
+                                    entityIds={(widget as any).entityIds}
+                                    title={(widget as any).title}
                                     type={widget.type}
                                     isEditMode={isEditMode}
                                 />

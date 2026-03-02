@@ -19,14 +19,17 @@ interface HAState {
 
 interface DashboardWidget {
     id: string;
-    entityId: string;
-    type: 'light' | 'sensor' | 'switch' | 'generic';
+    entityId: string;          // primary entity (or '__list__' for list widgets)
+    entityIds?: string[];      // used by SensorListWidget
+    title?: string;            // optional title for list widgets
+    type: 'light' | 'sensor' | 'switch' | 'generic' | 'sensor_list';
 }
 
 interface DashboardState {
     widgets: DashboardWidget[];
     layout: Layout[];
     addWidget: (entityId: string, type: DashboardWidget['type']) => void;
+    addSensorListWidget: (entityIds: string[], title?: string) => void;
     removeWidget: (id: string) => void;
     updateLayout: (newLayout: Layout[]) => void;
 }
@@ -53,6 +56,7 @@ export const useDashboardStore = create<DashboardState>((set) => ({
     layout: (JSON.parse(localStorage.getItem('dashboardLayout') || '[]') as Layout[]).map(
         (item) => ({ ...item, minW: 1, minH: 1 })
     ),
+
     addWidget: (entityId, type) => set((state) => {
         const id = `widget-${Date.now()}`;
         const newWidgets = [...state.widgets, { id, entityId, type }];
@@ -70,6 +74,25 @@ export const useDashboardStore = create<DashboardState>((set) => ({
         localStorage.setItem('dashboardLayout', JSON.stringify(newLayout));
         return { widgets: newWidgets, layout: newLayout };
     }),
+
+    addSensorListWidget: (entityIds, title = 'Motion Sensors') => set((state) => {
+        const id = `widget-${Date.now()}`;
+        const newWidget: DashboardWidget = {
+            id,
+            entityId: '__list__',
+            entityIds,
+            title,
+            type: 'sensor_list',
+        };
+        const newWidgets = [...state.widgets, newWidget];
+        // Tall default: 2 wide, height based on number of sensors
+        const h = Math.min(Math.max(3, entityIds.length + 2), 8);
+        const newLayout = [...state.layout, { i: id, x: 0, y: Infinity, w: 3, h, minW: 1, minH: 1 }];
+        localStorage.setItem('dashboardWidgets', JSON.stringify(newWidgets));
+        localStorage.setItem('dashboardLayout', JSON.stringify(newLayout));
+        return { widgets: newWidgets, layout: newLayout };
+    }),
+
     removeWidget: (id) => set((state) => {
         const newWidgets = state.widgets.filter((w) => w.id !== id);
         const newLayout = state.layout.filter((l) => l.i !== id);
