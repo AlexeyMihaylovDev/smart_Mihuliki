@@ -10,7 +10,7 @@ interface LightWidgetProps {
     isEditMode: boolean;
 }
 
-export const LightWidget: React.FC<LightWidgetProps> = ({ id, entityId, onRemove, isEditMode }) => {
+export const LightWidget: React.FC<LightWidgetProps> = ({ entityId, onRemove, isEditMode }) => {
     const { entities, connection } = useHAStore();
     const entity = entities ? (entities[entityId] as any) : null;
 
@@ -47,26 +47,20 @@ export const LightWidget: React.FC<LightWidgetProps> = ({ id, entityId, onRemove
     return (
         <motion.div
             layout
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9 }}
             className={`relative flex flex-col h-full w-full bg-neutral-900/60 backdrop-blur-2xl rounded-[2.5rem] overflow-hidden transition-all duration-700 group ${isOn ? 'shadow-[0_8px_32px_-10px_rgba(251,191,36,0.25)] border-amber-500/30' : 'shadow-2xl border-white/5'
                 } border`}
         >
-            {/* Фоновое мягкое свечение при активном состоянии */}
             <AnimatePresence>
                 {isOn && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.5 }}
                         className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-transparent pointer-events-none"
                     />
                 )}
             </AnimatePresence>
 
-            {/* HEADER */}
             <div className="relative z-10 p-5 flex items-start justify-between drag-handle cursor-move">
                 <div className="flex items-center gap-3">
                     <motion.div
@@ -79,78 +73,29 @@ export const LightWidget: React.FC<LightWidgetProps> = ({ id, entityId, onRemove
                         <Lightbulb size={18} />
                     </motion.div>
                     <div className="flex flex-col">
-                        <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-0.5">Light</span>
-                        <span className="text-sm font-medium text-neutral-100 truncate max-w-[110px] leading-tight">{name}</span>
+                        <span className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-0.5">Photon Node</span>
+                        <span className="text-sm font-black text-neutral-100 italic uppercase tracking-tighter truncate max-w-[110px] leading-tight">{name}</span>
                     </div>
                 </div>
 
-                {/* Кнопка удаления */}
                 {isEditMode && (
-                    <button
-                        onClick={onRemove}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        className="p-2 text-neutral-500 hover:text-red-400 hover:bg-red-400/10 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100"
-                        aria-label="Remove widget"
-                    >
-                        <X size={16} strokeWidth={2.5} />
-                    </button>
+                    <button onClick={onRemove} className="p-2 text-neutral-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"><X size={16} /></button>
                 )}
             </div>
 
-            {/* MAIN TOGGLE & INFO AREA */}
-            <div className="relative z-10 flex-grow flex flex-col items-center justify-center pb-2">
-                <div className="relative">
-                    {/* Пульсирующие кольца при On */}
-                    <AnimatePresence>
-                        {isOn && (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 0, scale: 1.8 }}
-                                transition={{
-                                    duration: 2,
-                                    repeat: Infinity,
-                                    ease: "easeOut"
-                                }}
-                                className="absolute inset-0 rounded-full bg-amber-500/30"
-                            />
-                        )}
-                    </AnimatePresence>
-
-                    <motion.button
-                        layoutId={`toggle-light-${id}`}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.92 }}
-                        onClick={toggle}
-                        className={`relative z-10 flex items-center justify-center w-16 h-16 rounded-full transition-all duration-500 cursor-pointer ${isOn
-                            ? 'bg-gradient-to-b from-amber-400 to-amber-500 shadow-[0_0_40px_rgba(251,191,36,0.4),inset_0_2px_0_rgba(255,255,255,0.4)]'
-                            : 'bg-gradient-to-b from-neutral-800 to-neutral-900 border border-neutral-700/50 shadow-[inset_0_4px_10px_rgba(0,0,0,0.5),0_2px_10px_rgba(0,0,0,0.5)]'
-                            }`}
-                    >
-                        <motion.div
-                            animate={{ scale: isOn ? 1.1 : 1 }}
-                            transition={{ type: "spring", stiffness: 300, damping: 15 }}
-                        >
-                            <Sun
-                                className={`transition-colors duration-500 ${isOn ? 'text-neutral-900 drop-shadow-md' : 'text-neutral-500'}`}
-                                size={26}
-                                strokeWidth={isOn ? 2.5 : 2}
-                            />
-                        </motion.div>
-                    </motion.button>
-                </div>
-
-                {/* STATUS TEXT */}
-                <motion.div
-                    className="mt-4 flex flex-col items-center"
-                    animate={{ opacity: 1 }}
+            <div className="relative z-10 flex-grow flex items-center justify-between px-6 pb-4">
+                <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.92 }}
+                    onClick={toggle}
+                    className={`flex items-center justify-center w-14 h-14 rounded-full ${isOn ? 'bg-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.4)]' : 'bg-neutral-800'}`}
                 >
-                    <motion.span
-                        animate={{ color: isOn ? '#fbbf24' : '#737373' }}
-                        className="text-2xl font-black tracking-tight"
-                    >
-                        {isOn ? `${brightness}%` : 'OFF'}
-                    </motion.span>
-                </motion.div>
+                    <Sun className={isOn ? 'text-neutral-900' : 'text-neutral-500'} size={24} />
+                </motion.button>
+                <div className="flex-grow ml-6 flex flex-col items-end">
+                    <span className="text-2xl font-black text-white tracking-tighter italic">{isOn ? `${brightness}%` : 'OFF'}</span>
+                    <span className="text-[8px] font-black text-neutral-500 uppercase tracking-widest">Luminance</span>
+                </div>
             </div>
 
             {/* CUSTOM SLIDER */}

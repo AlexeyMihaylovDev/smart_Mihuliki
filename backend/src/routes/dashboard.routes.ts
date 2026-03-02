@@ -6,7 +6,7 @@ const router = Router();
 router.get('/', async (req, res) => {
     try {
         const config = await dashboardService.getDashboardConfig();
-        res.json(config || { widgets: '[]', layout: '[]' });
+        res.json(config);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch dashboard config' });
     }
@@ -14,11 +14,8 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
     try {
-        const { widgets, layout } = req.body;
-        const config = await dashboardService.saveDashboardConfig(
-            JSON.stringify(widgets),
-            JSON.stringify(layout)
-        );
+        const { pages, activePageId } = req.body;
+        const config = await dashboardService.saveDashboardConfig(pages, activePageId);
         res.json(config);
     } catch (error) {
         res.status(500).json({ error: 'Failed to save dashboard config' });

@@ -1,16 +1,16 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "sqlite"
   url      = "file:./dev.db"
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 model SemanticCache {
   id        Int      @id @default(autoincrement())
   command   String   @unique
-  payload   String   // JSON representing { domain, service, entity_id }
+  payload   String
   hitCount  Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -18,16 +18,16 @@ model SemanticCache {
 
 model ChatHistory {
   id        Int      @id @default(autoincrement())
-  role      String   // "user" or "assistant"
+  role      String
   content   String
   createdAt DateTime @default(now())
 }
 
 model DashboardConfig {
-  id        Int      @id @default(1)
-  widgets   String   // JSON string
-  layout    String   // JSON string
-  updatedAt DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  pages        String   @default("[]")
+  activePageId String?
+  updatedAt    DateTime @updatedAt
 }
 
 model User {
@@ -38,7 +38,7 @@ model User {
 }
 
 model HASettings {
-  id        Int      @id @default(1)
+  id        Int      @id @default(autoincrement())
   haUrl     String
   haToken   String
   updatedAt DateTime @updatedAt

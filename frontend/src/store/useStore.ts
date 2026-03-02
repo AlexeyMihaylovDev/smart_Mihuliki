@@ -5,7 +5,6 @@ import { Layout } from 'react-grid-layout';
 const getApiUrl = () => {
     if (typeof window === 'undefined') return 'http://localhost:3001/api';
     const hostname = window.location.hostname;
-    // Always use port 3001 for the backend API
     return `http://${hostname}:3001/api`;
 };
 
@@ -32,17 +31,28 @@ interface HAState {
     setConnection: (conn: any) => void;
 }
 
-interface DashboardWidget {
+export interface DashboardWidget {
     id: string;
-    entityId: string;          // primary entity (or '__list__' for list widgets)
-    entityIds?: string[];      // used by SensorListWidget
-    title?: string;            // optional title for list widgets
+    entityId: string;
+    entityIds?: string[];
+    title?: string;
     type: 'light' | 'sensor' | 'switch' | 'generic' | 'sensor_list' | 'cover';
 }
 
-interface DashboardState {
+export interface DashboardPage {
+    id: string;
+    name: string;
     widgets: DashboardWidget[];
     layout: Layout[];
+}
+
+interface DashboardState {
+    pages: DashboardPage[];
+    activePageId: string;
+    setActivePage: (id: string) => void;
+    addPage: (name: string) => void;
+    removePage: (id: string) => void;
+    renamePage: (id: string, name: string) => void;
     addWidget: (entityId: string, type: DashboardWidget['type']) => void;
     addSensorListWidget: (entityIds: string[], title?: string) => void;
     addMultipleWidgets: (widgetsToAdd: { entityId: string, type: DashboardWidget['type'] }[]) => void;
@@ -107,12 +117,12 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     }
 }));
 
-const syncConfig = async (widgets: DashboardWidget[], layout: Layout[]) => {
+const syncConfig = async (pages: DashboardPage[], activePageId: string) => {
     try {
         await fetch(`${API_URL}/dashboard`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ widgets, layout })
+            body: JSON.stringify({ pages, activePageId })
         });
     } catch (e) {
         console.error('Failed to sync with server', e);
@@ -122,8 +132,39 @@ const syncConfig = async (widgets: DashboardWidget[], layout: Layout[]) => {
 let layoutSyncTimeout: any = null;
 
 export const useDashboardStore = create<DashboardState>((set, get) => ({
-    widgets: [],
-    layout: [],
+    pages: [{ id: 'home', name: 'Home', widgets: [], layout: [] }],
+    activePageId: 'home',
+
+    setActivePage: (id) => {
+        set({ activePageId: id });
+        syncConfig(get().pages, id);
+    },
+
+    addPage: (name) => {
+        const id = `page-${Date.now()}`;
+        const newPage = { id, name, widgets: [], layout: [] };
+        set((state) => ({ pages: [...state.pages, newPage], activePageId: id }));
+        syncConfig(get().pages, get().activePageId);
+    },
+
+    removePage: (id) => {
+        set((state) => {
+            const filtered = state.pages.filter(p => p.id !== id);
+            if (filtered.length === 0) {
+                filtered.push({ id: 'home', name: 'Home', widgets: [], layout: [] });
+            }
+            const newActive = id === state.activePageId ? filtered[0].id : state.activePageId;
+            return { pages: filtered, activePageId: newActive };
+        });
+        syncConfig(get().pages, get().activePageId);
+    },
+
+    renamePage: (id, name) => {
+        set((state) => ({
+            pages: state.pages.map(p => p.id === id ? { ...p, name } : p)
+        }));
+        syncConfig(get().pages, get().activePageId);
+    },
 
     addWidget: (entityId, type) => {
         const id = `widget-${Date.now()}`;
@@ -133,6 +174,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         if (type === 'switch') { w = 2; h = 3; }
         else if (type === 'light') { w = 2; h = 4; }
         else if (entityId.startsWith('climate.')) { w = 4; h = 5; }
+        else if (entityId.startsWith('vacuum.')) { w = 4; h = 6; }
         else if (entityId.includes('motion') || entityId.includes('presence')) { w = 2; h = 3; }
         else if (type === 'sensor') { w = 2; h = 3; }
         else if (type === 'cover') { w = 2; h = 4; }
@@ -140,14 +182,17 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         const newLayoutItem = { i: id, x: 0, y: 1000, w, h, minW: 1, minH: 1 };
 
         set((state) => ({
-            widgets: [...state.widgets, newWidget],
-            layout: [...state.layout, newLayoutItem]
+            pages: state.pages.map(p => p.id === state.activePageId ? {
+                ...p,
+                widgets: [...p.widgets, newWidget],
+                layout: [...p.layout, newLayoutItem]
+            } : p)
         }));
 
-        syncConfig(get().widgets, get().layout);
+        syncConfig(get().pages, get().activePageId);
     },
 
-    addSensorListWidget: (entityIds, title = 'Motion Sensors') => {
+    addSensorListWidget: (entityIds, title = 'Sensors') => {
         const id = `widget-${Date.now()}`;
         const newWidget: DashboardWidget = {
             id,
@@ -160,11 +205,14 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         const newLayoutItem = { i: id, x: 0, y: 1000, w: 3, h, minW: 1, minH: 1 };
 
         set((state) => ({
-            widgets: [...state.widgets, newWidget],
-            layout: [...state.layout, newLayoutItem]
+            pages: state.pages.map(p => p.id === state.activePageId ? {
+                ...p,
+                widgets: [...p.widgets, newWidget],
+                layout: [...p.layout, newLayoutItem]
+            } : p)
         }));
 
-        syncConfig(get().widgets, get().layout);
+        syncConfig(get().pages, get().activePageId);
     },
 
     addMultipleWidgets: (widgetsToAdd) => {
@@ -180,6 +228,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
             if (w.type === 'switch') { width = 2; height = 3; }
             else if (w.type === 'light') { width = 2; height = 4; }
             else if (w.entityId.startsWith('climate.')) { width = 4; height = 5; }
+            else if (w.entityId.startsWith('vacuum.')) { width = 4; height = 6; }
             else if (w.entityId.includes('motion') || w.entityId.includes('presence')) { width = 2; height = 3; }
             else if (w.type === 'sensor') { width = 2; height = 3; }
             else if (w.type === 'cover') { width = 2; height = 4; }
@@ -188,29 +237,36 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         });
 
         set((state) => ({
-            widgets: [...state.widgets, ...newWidgetEntries],
-            layout: [...state.layout, ...newLayoutItems]
+            pages: state.pages.map(p => p.id === state.activePageId ? {
+                ...p,
+                widgets: [...p.widgets, ...newWidgetEntries],
+                layout: [...p.layout, ...newLayoutItems]
+            } : p)
         }));
 
-        syncConfig(get().widgets, get().layout);
+        syncConfig(get().pages, get().activePageId);
     },
 
     removeWidget: (id) => {
         set((state) => ({
-            widgets: state.widgets.filter((w) => w.id !== id),
-            layout: state.layout.filter((l) => l.i !== id)
+            pages: state.pages.map(p => p.id === state.activePageId ? {
+                ...p,
+                widgets: p.widgets.filter((w) => w.id !== id),
+                layout: p.layout.filter((l) => l.i !== id)
+            } : p)
         }));
 
-        syncConfig(get().widgets, get().layout);
+        syncConfig(get().pages, get().activePageId);
     },
 
     updateLayout: (newLayout) => {
-        set({ layout: newLayout });
+        set((state) => ({
+            pages: state.pages.map(p => p.id === state.activePageId ? { ...p, layout: newLayout } : p)
+        }));
 
-        // Debounced sync for layout
         if (layoutSyncTimeout) clearTimeout(layoutSyncTimeout);
         layoutSyncTimeout = setTimeout(() => {
-            syncConfig(get().widgets, get().layout);
+            syncConfig(get().pages, get().activePageId);
         }, 1000);
     },
 
@@ -218,12 +274,11 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         try {
             const response = await fetch(`${API_URL}/dashboard`);
             const config = await response.json();
-            if (config) {
-                const widgets = typeof config.widgets === 'string' ? JSON.parse(config.widgets) : config.widgets;
-                const layout = (typeof config.layout === 'string' ? JSON.parse(config.layout) : config.layout).map(
-                    (item: any) => ({ ...item, minW: 1, minH: 1 })
-                );
-                set({ widgets: widgets || [], layout: layout || [] });
+            if (config && config.pages) {
+                set({
+                    pages: config.pages || [{ id: 'home', name: 'Home', widgets: [], layout: [] }],
+                    activePageId: config.activePageId || 'home'
+                });
             }
         } catch (error) {
             console.error('Failed to fetch dashboard config from server', error);

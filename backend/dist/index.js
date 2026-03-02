@@ -9,6 +9,9 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const client_1 = require("@prisma/client");
 const ha_routes_1 = __importDefault(require("./routes/ha.routes"));
 const ai_routes_1 = __importDefault(require("./routes/ai.routes"));
+const dashboard_routes_1 = __importDefault(require("./routes/dashboard.routes"));
+const auth_routes_1 = __importDefault(require("./routes/auth.routes"));
+const settings_routes_1 = __importDefault(require("./routes/settings.routes"));
 const metrics_service_1 = require("./services/metrics.service");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
@@ -23,6 +26,9 @@ app.get('/metrics', async (req, res) => {
 });
 app.use('/api/ha', ha_routes_1.default);
 app.use('/api/ai', ai_routes_1.default);
+app.use('/api/dashboard', dashboard_routes_1.default);
+app.use('/api/auth', auth_routes_1.default);
+app.use('/api/settings', settings_routes_1.default);
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok' });
 });
