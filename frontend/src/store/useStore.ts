@@ -49,7 +49,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 
 export const useDashboardStore = create<DashboardState>((set) => ({
     widgets: JSON.parse(localStorage.getItem('dashboardWidgets') || '[]'),
-    layout: JSON.parse(localStorage.getItem('dashboardLayout') || '[]'),
+    // Migrate existing layouts: remove old hard constraints so all widgets can be freely resized
+    layout: (JSON.parse(localStorage.getItem('dashboardLayout') || '[]') as Layout[]).map(
+        (item) => ({ ...item, minW: 1, minH: 1 })
+    ),
     addWidget: (entityId, type) => set((state) => {
         const id = `widget-${Date.now()}`;
         const newWidgets = [...state.widgets, { id, entityId, type }];
