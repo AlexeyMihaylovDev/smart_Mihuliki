@@ -66,7 +66,7 @@ export const LightWidget: React.FC<LightWidgetProps> = ({ id, entityId, onRemove
             </AnimatePresence>
 
             {/* HEADER */}
-            <div className="relative z-10 p-5 flex items-start justify-between">
+            <div className="relative z-10 p-5 flex items-start justify-between drag-handle cursor-move">
                 <div className="flex items-center gap-3">
                     <motion.div
                         animate={{
