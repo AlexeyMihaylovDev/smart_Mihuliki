@@ -7,9 +7,10 @@ interface MotionWidgetProps {
     id: string;
     entityId: string;
     onRemove: () => void;
+    isEditMode: boolean;
 }
 
-export const MotionWidget: React.FC<MotionWidgetProps> = ({ id: _id, entityId, onRemove }) => {
+export const MotionWidget: React.FC<MotionWidgetProps> = ({ id: _id, entityId, onRemove, isEditMode }) => {
     const { entities } = useHAStore();
     const entity = entities ? (entities[entityId] as any) : null;
 
@@ -73,12 +74,14 @@ export const MotionWidget: React.FC<MotionWidgetProps> = ({ id: _id, entityId, o
                             <span className="text-[10px] font-bold text-neutral-400">{batteryLevel}%</span>
                         </div>
                     )}
-                    <button
-                        onClick={onRemove}
-                        className="p-2 text-neutral-500 hover:text-red-400 hover:bg-red-400/10 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100"
-                    >
-                        <X size={16} strokeWidth={2.5} />
-                    </button>
+                    {isEditMode && (
+                        <button
+                            onClick={onRemove}
+                            className="p-2 text-neutral-500 hover:text-red-400 hover:bg-red-400/10 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                        >
+                            <X size={16} strokeWidth={2.5} />
+                        </button>
+                    )}
                 </div>
             </div>
 

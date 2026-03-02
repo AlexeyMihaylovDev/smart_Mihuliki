@@ -7,9 +7,10 @@ interface LightWidgetProps {
     id: string;
     entityId: string;
     onRemove: () => void;
+    isEditMode: boolean;
 }
 
-export const LightWidget: React.FC<LightWidgetProps> = ({ id, entityId, onRemove }) => {
+export const LightWidget: React.FC<LightWidgetProps> = ({ id, entityId, onRemove, isEditMode }) => {
     const { entities, connection } = useHAStore();
     const entity = entities ? (entities[entityId] as any) : null;
 
@@ -84,13 +85,15 @@ export const LightWidget: React.FC<LightWidgetProps> = ({ id, entityId, onRemove
                 </div>
 
                 {/* Кнопка удаления */}
-                <button
-                    onClick={onRemove}
-                    className="p-2 text-neutral-500 hover:text-red-400 hover:bg-red-400/10 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100"
-                    aria-label="Remove widget"
-                >
-                    <X size={16} strokeWidth={2.5} />
-                </button>
+                {isEditMode && (
+                    <button
+                        onClick={onRemove}
+                        className="p-2 text-neutral-500 hover:text-red-400 hover:bg-red-400/10 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                        aria-label="Remove widget"
+                    >
+                        <X size={16} strokeWidth={2.5} />
+                    </button>
+                )}
             </div>
 
             {/* MAIN TOGGLE & INFO AREA */}

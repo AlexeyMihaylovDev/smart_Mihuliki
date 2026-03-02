@@ -54,15 +54,15 @@ export const useDashboardStore = create<DashboardState>((set) => ({
         const id = `widget-${Date.now()}`;
         const newWidgets = [...state.widgets, { id, entityId, type }];
 
-        // Define default dimensions based on type
-        let w = 2, h = 3, minW = 2, minH = 2;
-        if (type === 'switch') { w = 2; h = 3; minH = 3; }
-        else if (type === 'light') { w = 2; h = 4; minH = 4; }
-        else if (entityId.startsWith('climate.')) { w = 4; h = 5; minW = 3; minH = 5; }
-        else if (entityId.includes('motion') || entityId.includes('presence')) { w = 2; h = 3; minH = 3; }
-        else if (type === 'sensor') { w = 2; h = 3; minH = 3; }
+        // Define default dimensions based on type (min 1x1 for all)
+        let w = 2, h = 3;
+        if (type === 'switch') { w = 2; h = 3; }
+        else if (type === 'light') { w = 2; h = 4; }
+        else if (entityId.startsWith('climate.')) { w = 4; h = 5; }
+        else if (entityId.includes('motion') || entityId.includes('presence')) { w = 2; h = 3; }
+        else if (type === 'sensor') { w = 2; h = 3; }
 
-        const newLayout = [...state.layout, { i: id, x: 0, y: Infinity, w, h, minW, minH }];
+        const newLayout = [...state.layout, { i: id, x: 0, y: Infinity, w, h, minW: 1, minH: 1 }];
         localStorage.setItem('dashboardWidgets', JSON.stringify(newWidgets));
         localStorage.setItem('dashboardLayout', JSON.stringify(newLayout));
         return { widgets: newWidgets, layout: newLayout };

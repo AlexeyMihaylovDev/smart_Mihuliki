@@ -78,6 +78,7 @@ export const Dashboard: React.FC = () => {
                                     id={widget.id}
                                     entityId={widget.entityId}
                                     type={widget.type}
+                                    isEditMode={isEditMode}
                                 />
                                 {isEditMode && (
                                     <div className="absolute -top-1 -right-1 z-10">
