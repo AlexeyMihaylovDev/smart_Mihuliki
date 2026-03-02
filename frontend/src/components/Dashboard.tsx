@@ -10,9 +10,13 @@ import { Plus, Settings2, Layout as LayoutIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const Dashboard: React.FC = () => {
-    const { widgets, layout, updateLayout } = useDashboardStore();
+    const { widgets, layout, updateLayout, fetchConfig } = useDashboardStore();
     const [isSelectorOpen, setIsSelectorOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
+
+    React.useEffect(() => {
+        fetchConfig();
+    }, []);
 
     const onLayoutChange = (newLayout: Layout[]) => {
         updateLayout(newLayout);
@@ -71,7 +75,7 @@ export const Dashboard: React.FC = () => {
                         isResizable={isEditMode}
                         margin={[16, 16]}
                     >
-                        {widgets.map((widget) => (
+                        {widgets.map((widget: any) => (
                             <div key={widget.id}>
                                 <GenericWidget
                                     id={widget.id}

@@ -22,3 +22,10 @@ model ChatHistory {
   content   String
   createdAt DateTime @default(now())
 }
+
+model DashboardConfig {
+  id        Int      @id @default(1)
+  widgets   String   // JSON string
+  layout    String   // JSON string
+  updatedAt DateTime @updatedAt
+}

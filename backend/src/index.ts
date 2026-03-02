@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import haRoutes from './routes/ha.routes';
 import aiRoutes from './routes/ai.routes';
+import dashboardRoutes from './routes/dashboard.routes';
 import { register } from './services/metrics.service';
 
 dotenv.config();
@@ -23,6 +24,7 @@ app.get('/metrics', async (req, res) => {
 
 app.use('/api/ha', haRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok' });

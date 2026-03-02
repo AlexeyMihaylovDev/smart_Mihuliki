@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useHAStore, useDashboardStore } from '../store/useStore';
-import { Search, X, Plus, Lightbulb, ToggleLeft, Activity, Box, Thermometer, ShieldAlert, ListFilter, Blinds } from 'lucide-react';
+import { Search, X, Plus, Lightbulb, ToggleLeft, Activity, Box, Thermometer, ShieldAlert, ListFilter, Blinds, CheckCircle2, Circle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface WidgetSelectorProps {
@@ -10,9 +10,10 @@ interface WidgetSelectorProps {
 
 export const WidgetSelector: React.FC<WidgetSelectorProps> = ({ isOpen, onClose }) => {
     const { entities } = useHAStore();
-    const { addWidget, addSensorListWidget } = useDashboardStore();
+    const { addWidget, addSensorListWidget, addMultipleWidgets } = useDashboardStore();
     const [search, setSearch] = useState('');
     const [tab, setTab] = useState<'devices' | 'lists'>('devices');
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
     if (!entities) return null;
 
@@ -36,7 +37,7 @@ export const WidgetSelector: React.FC<WidgetSelectorProps> = ({ isOpen, onClose 
             (entity.attributes.friendly_name || '').toLowerCase().includes(search.toLowerCase());
 
         return isSelectedType && matchesSearch;
-    }).slice(0, 70);
+    }).slice(0, 100);
 
     const getEntityType = (entityId: string): 'light' | 'switch' | 'sensor' | 'generic' | 'cover' => {
         if (entityId.startsWith('light.')) return 'light';
@@ -63,24 +64,74 @@ export const WidgetSelector: React.FC<WidgetSelectorProps> = ({ isOpen, onClose 
         onClose();
     };
 
+    const toggleSelection = (entityId: string) => {
+        const newSelected = new Set(selectedIds);
+        if (newSelected.has(entityId)) {
+            newSelected.delete(entityId);
+        } else {
+            newSelected.add(entityId);
+        }
+        setSelectedIds(newSelected);
+    };
+
+    const selectAll = () => {
+        setSelectedIds(new Set(filteredEntities.map((e: any) => e.entity_id)));
+    };
+
+    const deselectAll = () => {
+        setSelectedIds(new Set());
+    };
+
+    const handleAddSelected = () => {
+        const widgetsToAdd = Array.from(selectedIds).map(eid => ({
+            entityId: eid,
+            type: getEntityType(eid)
+        }));
+        addMultipleWidgets(widgetsToAdd);
+        onClose();
+        setSelectedIds(new Set());
+    };
+
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    {/* Proper animated backdrop */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={onClose}
+                        className="absolute inset-0 bg-black/60 backdrop-blur-md"
+                    />
+
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        className="bg-gray-800 border border-gray-700 rounded-3xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl overflow-hidden"
+                        className="relative z-10 bg-gray-800 border border-gray-700 rounded-3xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden"
                     >
                         <div className="p-6 border-b border-gray-700 flex justify-between items-center bg-gray-800/50">
                             <div>
-                                <h2 className="text-xl font-bold text-white">Add Hub Widget</h2>
-                                <p className="text-xs text-gray-500 mt-1">Select any device to add to your dashboard</p>
+                                <h2 className="text-xl font-bold text-white">Add Hub Widgets</h2>
+                                <p className="text-xs text-gray-500 mt-1">Select multiple devices to add at once</p>
                             </div>
-                            <button onClick={onClose} className="p-2 hover:bg-gray-700 rounded-full text-gray-400 transition">
-                                <X size={20} />
-                            </button>
+                            <div className="flex items-center gap-2">
+                                {selectedIds.size > 0 && (
+                                    <motion.button
+                                        initial={{ opacity: 0, x: 10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        onClick={handleAddSelected}
+                                        className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 flex items-center gap-2"
+                                    >
+                                        <Plus size={16} />
+                                        Add {selectedIds.size} widgets
+                                    </motion.button>
+                                )}
+                                <button onClick={onClose} className="p-2 hover:bg-gray-700 rounded-full text-gray-400 transition">
+                                    <X size={20} />
+                                </button>
+                            </div>
                         </div>
 
                         {/* Tabs */}
@@ -99,10 +150,10 @@ export const WidgetSelector: React.FC<WidgetSelectorProps> = ({ isOpen, onClose 
                             </button>
                         </div>
 
-                        <div className="flex-grow overflow-y-auto bg-gray-900/10">
+                        <div className="flex-grow overflow-y-auto bg-gray-900/10 custom-scrollbar">
                             {tab === 'devices' && (
                                 <>
-                                    <div className="p-4 bg-gray-900/30">
+                                    <div className="p-4 bg-gray-900/30 space-y-3">
                                         <div className="relative">
                                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
                                             <input
@@ -113,39 +164,57 @@ export const WidgetSelector: React.FC<WidgetSelectorProps> = ({ isOpen, onClose 
                                                 className="w-full bg-gray-800 border border-gray-700 rounded-2xl py-3 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium"
                                             />
                                         </div>
+
+                                        <div className="flex items-center justify-between px-2">
+                                            <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                                                {filteredEntities.length} entities found
+                                            </span>
+                                            <div className="flex gap-4">
+                                                <button onClick={selectAll} className="text-[10px] font-black text-blue-400 hover:text-blue-300 uppercase tracking-tighter">Select All</button>
+                                                <button onClick={deselectAll} className="text-[10px] font-black text-gray-500 hover:text-gray-400 uppercase tracking-tighter">Clear All</button>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="p-4 space-y-2">
+
+                                    <div className="p-4 pt-0 space-y-2">
                                         {filteredEntities.map((entity: any) => {
                                             const type = getEntityType(entity.entity_id);
+                                            const isSelected = selectedIds.has(entity.entity_id);
                                             return (
                                                 <motion.div
                                                     layout
                                                     key={entity.entity_id}
-                                                    className="flex items-center justify-between p-3.5 bg-gray-800/40 border border-transparent hover:border-blue-500/30 rounded-2xl hover:bg-gray-800/80 transition-all cursor-pointer group"
-                                                    onClick={() => {
-                                                        addWidget(entity.entity_id, type);
-                                                        onClose();
-                                                    }}
+                                                    className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all cursor-pointer group ${isSelected ? 'bg-blue-500/10 border-blue-500/30' : 'bg-gray-800/40 border-transparent hover:border-gray-600 hover:bg-gray-800/60'
+                                                        }`}
+                                                    onClick={() => toggleSelection(entity.entity_id)}
                                                 >
                                                     <div className="flex items-center space-x-4">
-                                                        <div className="p-2.5 bg-gray-700/50 rounded-xl text-blue-400 group-hover:scale-110 group-hover:bg-blue-500/10 transition-all">
+                                                        <div className={`p-1.5 rounded-lg transition-colors ${isSelected ? 'text-blue-400' : 'text-gray-600'}`}>
+                                                            {isSelected ? <CheckCircle2 size={24} fill="currentColor" className="text-blue-500/20" /> : <Circle size={24} />}
+                                                        </div>
+                                                        <div className={`p-2.5 rounded-xl transition-all ${isSelected ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-700/50 text-gray-400 group-hover:scale-110 group-hover:bg-blue-500/10 group-hover:text-blue-400'}`}>
                                                             {getIcon(entity.entity_id)}
                                                         </div>
                                                         <div>
-                                                            <div className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">
+                                                            <div className={`text-sm font-bold transition-colors ${isSelected ? 'text-blue-400' : 'text-white'}`}>
                                                                 {entity.attributes.friendly_name || entity.entity_id}
                                                             </div>
                                                             <div className="text-[10px] text-gray-500 font-mono tracking-tighter uppercase mt-0.5">{entity.entity_id}</div>
                                                         </div>
                                                     </div>
-                                                    <div className="flex items-center space-x-2">
-                                                        <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity mr-2">
-                                                            Add to grid
-                                                        </span>
-                                                        <div className="p-2 bg-blue-500/0 group-hover:bg-blue-500/10 rounded-lg text-gray-500 group-hover:text-blue-400 transition-all">
+
+                                                    {!isSelected && (
+                                                        <button
+                                                            className="p-2 bg-blue-500/0 hover:bg-blue-500/10 rounded-lg text-gray-500 hover:text-blue-400 transition-all opacity-0 group-hover:opacity-100"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                addWidget(entity.entity_id, type);
+                                                                onClose();
+                                                            }}
+                                                        >
                                                             <Plus size={20} />
-                                                        </div>
-                                                    </div>
+                                                        </button>
+                                                    )}
                                                 </motion.div>
                                             );
                                         })}
